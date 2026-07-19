@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>生日贺卡</title>
+<style>
+*{margin:0;padding:0}
+body{
+    width:100vw;
+    height:100vh;
+    background: linear-gradient(145deg, #fff7e0, #ffdfb8);
+    overflow: hidden;
+}
+/* 中间点击提示大字 */
+.click-tip{
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    font-size:42px;
+    color:#b8422c;
+    font-weight:bold;
+    letter-spacing:3px;
+    text-shadow: 0 0 10px #ffffff;
+    text-align:center;
+}
+.text-box{
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    font-size:28px;
+    color:#b8422c;
+    font-weight:bold;
+    letter-spacing:3px;
+    line-height: 2.2;
+    white-space:pre;
+    text-shadow: 0 0 8px #ffffff;
+    text-align:center;
+    display:none;
+}
+.cursor{
+    animation: blink 0.7s infinite;
+}
+@keyframes blink {
+    0%,100%{opacity:1;}
+    50%{opacity:0;}
+}
+</style>
+</head>
+<body>
+<div class="click-tip" id="clickTip">点一下有惊喜</div>
+<div class="text-box" id="textArea"></div>
+
+<script>
+// 适合爸爸的通俗祝福
+const wordText = "老爸，生日快乐！\n祝您身体健康，少操劳\n天天舒心，万事顺心\n平安喜乐，福寿安康 🎉";
+const typeSpeed = 120;
+const endDelay = 1800;
+let index = 0;
+const dom = document.getElementById("textArea");
+const tipDom = document.getElementById("clickTip");
+let audioCtx = null;
+let musicPlaying = false;
+let showText = false;
+
+// 生日快乐完整简谱
+const melody = [
+    {note:261.63, dur:0.3},
+    {note:261.63, dur:0.3},
+    {note:293.66, dur:0.6},
+    {note:261.63, dur:0.6},
+    {note:349.23, dur:0.6},
+    {note:329.63, dur:1},
+
+    {note:261.63, dur:0.3},
+    {note:261.63, dur:0.3},
+    {note:293.66, dur:0.6},
+    {note:261.63, dur:0.6},
+    {note:392, dur:0.6},
+    {note:349.23, dur:1},
+
+    {note:261.63, dur:0.3},
+    {note:261.63, dur:0.3},
+    {note:523.25, dur:0.6},
+    {note:440, dur:0.6},
+    {note:349.23, dur:0.4},
+    {note:329.63, dur:0.4},
+    {note:293.66, dur:1},
+
+    {note:466.16, dur:0.3},
+    {note:466.16, dur:0.3},
+    {note:440, dur:0.6},
+    {note:349.23, dur:0.6},
+    {note:392, dur:0.6},
+    {note:349.23, dur:1.2}
+];
+
+// 播放生日旋律，只播放一遍，播完自动重置页面
+function playMelody(){
+    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let time = audioCtx.currentTime;
+    let totalPlayTime = 0;
+    melody.forEach(item=>{
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = "sine";
+        osc.frequency.value = item.note;
+        gain.gain.setValueAtTime(0.25, time);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + item.dur - 0.02);
+        osc.start(time);
+        osc.stop(time + item.dur);
+        time += item.dur;
+        totalPlayTime += item.dur;
+    })
+    // 整首音乐播放完毕后，等待文字展示完，重置回初始界面
+    const waitAllDone = totalPlayTime * 1000 + wordText.length * typeSpeed + endDelay;
+    setTimeout(resetPage, waitAllDone);
+}
+
+// 重置页面到初始状态：隐藏文字，恢复提示，清空打字进度
+function resetPage(){
+    index = 0;
+    showText = false;
+    musicPlaying = false;
+    dom.style.display = "none";
+    tipDom.style.display = "block";
+    dom.innerHTML = "";
+}
+
+// 打字动画
+function typing(){
+    if(index < wordText.length){
+        dom.textContent = wordText.slice(0, index+1);
+        dom.innerHTML += `<span class="cursor">|</span>`;
+        index++;
+        setTimeout(typing, typeSpeed);
+    }else{
+        setTimeout(()=>{
+            dom.innerHTML = wordText + `<span class="cursor">|</span>`;
+        }, endDelay);
+    }
+}
+
+// 点击触发：隐藏提示、播放音乐、显示文字开始打字
+document.body.addEventListener("click", ()=>{
+    if(musicPlaying) return;
+    tipDom.style.display = "none";
+    dom.style.display = "block";
+
+    if(!musicPlaying){
+        musicPlaying = true;
+        playMelody();
+    }
+    if(!showText){
+        showText = true;
+        typing();
+    }
+})
+</script>
+</body>
+</html>
