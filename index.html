@@ -5,103 +5,174 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>生日贺卡</title>
 <style>
-*{margin:0;padding:0}
-body{
-    width:100vw;
-    height:100vh;
-    background: linear-gradient(145deg, #fff7e0, #ffdfb8);
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Microsoft Yahei", sans-serif;
+}
+body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #ffecd2, #fcb69f);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    position: relative;
     overflow: hidden;
 }
-/* 中间点击提示大字 */
-.click-tip{
-    position:absolute;
-    top:50%;
-    left:50%;
-    transform:translate(-50%,-50%);
-    font-size:42px;
-    color:#b8422c;
-    font-weight:bold;
-    letter-spacing:3px;
-    text-shadow: 0 0 10px #ffffff;
-    text-align:center;
+.card {
+    width: 100%;
+    max-width: 420px;
+    background: #fff;
+    border-radius: 20px;
+    padding: 40px 30px;
+    text-align: center;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    position: relative;
+    overflow: hidden;
+    display: none;
 }
-.text-box{
-    position:absolute;
-    top:50%;
-    left:50%;
-    transform:translate(-50%,-50%);
-    font-size:28px;
-    color:#b8422c;
-    font-weight:bold;
-    letter-spacing:3px;
-    line-height: 2.2;
-    white-space:pre;
-    text-shadow: 0 0 8px #ffffff;
-    text-align:center;
-    display:none;
+.card.active {
+    display: block;
 }
-.cursor{
+.card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 6px;
+    background: linear-gradient(90deg, #ff6b6b, #ffd93d);
+}
+h1 {
+    font-size: 28px;
+    color: #222;
+    margin-bottom: 20px;
+}
+.wish-text {
+    font-size: 18px;
+    color: #444;
+    line-height: 1.9;
+    margin: 25px 0;
+    white-space: pre-line;
+}
+.highlight {
+    color: #ff5757;
+    font-weight: bold;
+    font-size: 20px;
+}
+.cursor {
     animation: blink 0.7s infinite;
 }
 @keyframes blink {
     0%,100%{opacity:1;}
     50%{opacity:0;}
 }
+.decorate {
+    display: none;
+}
+.sign {
+    margin-top: 35px;
+    font-size: 15px;
+    color: #777;
+}
+/* 翻页按钮 */
+.prev-btn, .next-btn {
+    position: fixed;
+    bottom: 30px;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 30px;
+    background-color: #ff6b6b;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+}
+.prev-btn {
+    left: 30px;
+}
+.next-btn {
+    right: 30px;
+}
+.prev-btn:hover, .next-btn:hover {
+    background-color: #ff4f4f;
+}
+.prev-btn:disabled, .next-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    box-shadow: none;
+}
 </style>
 </head>
 <body>
-<div class="click-tip" id="clickTip">点一下有惊喜</div>
-<div class="text-box" id="textArea"></div>
+<!-- 封面 点击卡片任意位置进入第1页 -->
+<div class="card active" data-page="cover" id="coverBox">
+    <h1>汪禹孝亲启</h1>
+    <div class="wish-text"></div>
+    <div class="sign">点击卡片翻开贺卡</div>
+</div>
+
+<!-- 正文一共5面：1~5页 -->
+<div class="card" data-page="1">
+    <h1>生日快乐</h1>
+    <div class="wish-text" data-text="胸肌哥哥生日快乐
+祝你的胸肌越练越大，大到可以夹死我"></div>
+    <div class="sign">——王冠凯</div>
+</div>
+<div class="card" data-page="2">
+    <h1>生日快乐</h1>
+    <div class="wish-text" data-text="笑笑肌肉大 笑笑肌肉大
+胸阔背厚肌肉大 肩宽腿强体脂低 头顶不尖尖 
+汪禹孝生日快乐 肌肉越来越大💪"></div>
+    <div class="sign">——盛强</div>
+</div>
+<div class="card" data-page="3">
+    <h1>生日快乐</h1>
+    <div class="wish-text" data-text="汪禹孝生日快乐
+祝早日成为双开门冰箱，胸肌可以一把给我头夹爆"></div>
+    <div class="sign">——王千懿</div>
+</div>
+<div class="card" data-page="4">
+    <h1>生日快乐</h1>
+    <div class="wish-text" data-text="祝WYX鸡巴越来越粗大"></div>
+    <div class="sign">——羊文彪</div>
+</div>
+<div class="card" data-page="5">
+    <h1>生日快乐</h1>
+    <div class="wish-text" data-text="生日快乐，祝你早点找到学姐🫰"></div>
+    <div class="sign">——滕远帆</div>
+</div>
+
+<button class="prev-btn" id="prevBtn" disabled>上一页</button>
+<button class="next-btn" id="nextBtn" disabled>下一页</button>
 
 <script>
-// 适合爸爸的通俗祝福
-const wordText = "老爸，生日快乐！\n祝您身体健康，少操劳\n天天舒心，万事顺心\n平安喜乐，福寿安康 🎉";
-const typeSpeed = 120;
-const endDelay = 1800;
-let index = 0;
-const dom = document.getElementById("textArea");
-const tipDom = document.getElementById("clickTip");
+const allCards = document.querySelectorAll('.card');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const coverBox = document.getElementById('coverBox');
+
+let currentPage = 'cover';
+const maxContentPage = 5;
 let audioCtx = null;
-let musicPlaying = false;
-let showText = false;
+let hasPlayMusic = false;
+let typingTimer = null;
+const typeSpeed = 120;
 
-// 生日快乐完整简谱
+// 内置生日快乐简谱
 const melody = [
-    {note:261.63, dur:0.3},
-    {note:261.63, dur:0.3},
-    {note:293.66, dur:0.6},
-    {note:261.63, dur:0.6},
-    {note:349.23, dur:0.6},
-    {note:329.63, dur:1},
-
-    {note:261.63, dur:0.3},
-    {note:261.63, dur:0.3},
-    {note:293.66, dur:0.6},
-    {note:261.63, dur:0.6},
-    {note:392, dur:0.6},
-    {note:349.23, dur:1},
-
-    {note:261.63, dur:0.3},
-    {note:261.63, dur:0.3},
-    {note:523.25, dur:0.6},
-    {note:440, dur:0.6},
-    {note:349.23, dur:0.4},
-    {note:329.63, dur:0.4},
-    {note:293.66, dur:1},
-
-    {note:466.16, dur:0.3},
-    {note:466.16, dur:0.3},
-    {note:440, dur:0.6},
-    {note:349.23, dur:0.6},
-    {note:392, dur:0.6},
-    {note:349.23, dur:1.2}
+    {note:261.63, dur:0.3},{note:261.63, dur:0.3},{note:293.66, dur:0.6},{note:261.63, dur:0.6},{note:349.23, dur:0.6},{note:329.63, dur:1},
+    {note:261.63, dur:0.3},{note:261.63, dur:0.3},{note:293.66, dur:0.6},{note:261.63, dur:0.6},{note:392, dur:0.6},{note:349.23, dur:1},
+    {note:261.63, dur:0.3},{note:261.63, dur:0.3},{note:523.25, dur:0.6},{note:440, dur:0.6},{note:349.23, dur:0.4},{note:329.63, dur:0.4},{note:293.66, dur:1},
+    {note:466.16, dur:0.3},{note:466.16, dur:0.3},{note:440, dur:0.6},{note:349.23, dur:0.6},{note:392, dur:0.6},{note:349.23, dur:1.2}
 ];
 
-// 播放生日旋律，只播放一遍，播完自动重置页面
 function playMelody(){
     if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     let time = audioCtx.currentTime;
-    let totalPlayTime = 0;
+    let totalDuration = 0;
     melody.forEach(item=>{
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
@@ -114,52 +185,77 @@ function playMelody(){
         osc.start(time);
         osc.stop(time + item.dur);
         time += item.dur;
-        totalPlayTime += item.dur;
+        totalDuration += item.dur;
     })
-    // 整首音乐播放完毕后，等待文字展示完，重置回初始界面
-    const waitAllDone = totalPlayTime * 1000 + wordText.length * typeSpeed + endDelay;
-    setTimeout(resetPage, waitAllDone);
+    // 播放完停顿2秒自动重新播放
+    setTimeout(playMelody, totalDuration * 1000 + 2000);
 }
 
-// 重置页面到初始状态：隐藏文字，恢复提示，清空打字进度
-function resetPage(){
-    index = 0;
-    showText = false;
-    musicPlaying = false;
-    dom.style.display = "none";
-    tipDom.style.display = "block";
-    dom.innerHTML = "";
-}
 
 // 打字动画
-function typing(){
-    if(index < wordText.length){
-        dom.textContent = wordText.slice(0, index+1);
-        dom.innerHTML += `<span class="cursor">|</span>`;
-        index++;
-        setTimeout(typing, typeSpeed);
+function startTypeAnimation(wrapDom, fullText){
+    clearTimeout(typingTimer);
+    let index = 0;
+    wrapDom.innerHTML = "";
+    function typing(){
+        if(index < fullText.length){
+            wrapDom.textContent = fullText.slice(0, index+1);
+            wrapDom.innerHTML += `<span class="cursor">|</span>`;
+            index++;
+            typingTimer = setTimeout(typing, typeSpeed);
+        }else{
+            wrapDom.innerHTML = fullText + `<span class="cursor">|</span>`;
+        }
+    }
+    typing();
+}
+
+function render(){
+    clearTimeout(typingTimer);
+    allCards.forEach(c => c.classList.remove('active'));
+    const activeCard = document.querySelector(`[data-page="${currentPage}"]`);
+    activeCard.classList.add('active');
+
+    if(currentPage === 'cover'){
+        prevBtn.disabled = true;
+        nextBtn.disabled = true;
     }else{
-        setTimeout(()=>{
-            dom.innerHTML = wordText + `<span class="cursor">|</span>`;
-        }, endDelay);
+        const num = Number(currentPage);
+        prevBtn.disabled = num === 1;
+        nextBtn.disabled = num === maxContentPage;
+        // 获取当前页文字容器，启动打字动画
+        const textWrap = activeCard.querySelector('.wish-text');
+        const textContent = textWrap.dataset.text;
+        startTypeAnimation(textWrap, textContent);
     }
 }
 
-// 点击触发：隐藏提示、播放音乐、显示文字开始打字
-document.body.addEventListener("click", ()=>{
-    if(musicPlaying) return;
-    tipDom.style.display = "none";
-    dom.style.display = "block";
-
-    if(!musicPlaying){
-        musicPlaying = true;
+// 点击封面进入第1页，自动播放音乐
+coverBox.addEventListener('click',()=>{
+    currentPage = 1;
+    render();
+    if(!hasPlayMusic){
+        hasPlayMusic = true;
         playMelody();
     }
-    if(!showText){
-        showText = true;
-        typing();
-    }
 })
+
+nextBtn.onclick = ()=>{
+    const num = Number(currentPage);
+    if(num < maxContentPage){
+        currentPage = num + 1;
+        render();
+    }
+}
+prevBtn.onclick = ()=>{
+    const num = Number(currentPage);
+    if(num > 1){
+        currentPage = num - 1;
+        render();
+    }
+}
+
+render();
 </script>
 </body>
 </html>
